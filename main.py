@@ -35,7 +35,7 @@ def reset_game(font, streak, upgrades):
 
 pygame.init()
 screen = pygame.display.set_mode(SCREEN_SIZE)
-pygame.display.set_caption('Claude of Fortune')
+pygame.display.set_caption('Word Game')
 clock = pygame.time.Clock()
 running = True
 

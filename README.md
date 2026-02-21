@@ -1,4 +1,4 @@
-# Claude of Fortune
+# Word Game
 
 A Wheel of Fortune-style word guessing game built with Python and Pygame.
 
@@ -37,13 +37,13 @@ Press the **Upgrades** button at the top of the screen to see your current progr
 ### Windows
 
 1. Go to the [Releases](../../releases) page
-2. Download `claude-of-fortune-windows.exe`
+2. Download `word-game-windows.exe`
 3. Double click to run — no installation needed
 
 ### Mac
 
 1. Go to the [Releases](../../releases) page
-2. Download `claude-of-fortune-mac.dmg`
+2. Download `word-game-mac.dmg`
 3. Open the DMG and drag the app to your Applications folder
 4. On first launch, right-click the app and choose **Open**
 5. Click **Open** on the security warning — this only appears the first time
@@ -53,14 +53,14 @@ Press the **Upgrades** button at the top of the screen to see your current progr
 ### Linux
 
 1. Go to the [Releases](../../releases) page
-2. Download `claude-of-fortune-linux.bin`
+2. Download `word-game-linux.bin`
 3. Open a terminal and make it executable:
 ```
-chmod +x claude-of-fortune-linux.bin
+chmod +x word-game-linux.bin
 ```
 4. Run it:
 ```
-./claude-of-fortune-linux.bin
+./word-game-linux.bin
 ```
 
 ---

@@ -17,7 +17,7 @@ jobs:
       - run: pyinstaller --onefile main.py
       - uses: actions/upload-artifact@v4
         with:
-          name: claude-of-fortune-windows
+          name: word-game-windows
           path: dist/main.exe
 
   build-mac:
@@ -32,12 +32,12 @@ jobs:
       - name: Create DMG
         run: |
           mkdir -p dist/dmg
-          cp -r dist/main.app dist/dmg/Claude\ of\ Fortune.app
-          hdiutil create -volname "Claude of Fortune" -srcfolder dist/dmg -ov -format UDZO dist/claude-of-fortune-mac.dmg
+          cp -r dist/main.app dist/dmg/Word\ Game.app
+          hdiutil create -volname "Word Game" -srcfolder dist/dmg -ov -format UDZO dist/word-game-mac.dmg
       - uses: actions/upload-artifact@v4
         with:
-          name: claude-of-fortune-mac
-          path: dist/claude-of-fortune-mac.dmg
+          name: word-game-mac
+          path: dist/word-game-mac.dmg
 
   build-linux:
     runs-on: ubuntu-latest
@@ -50,7 +50,7 @@ jobs:
       - run: pyinstaller --onefile main.py
       - uses: actions/upload-artifact@v4
         with:
-          name: claude-of-fortune-linux
+          name: word-game-linux
           path: dist/main
 
   release:
@@ -74,13 +74,13 @@ jobs:
       - uses: actions/download-artifact@v4
       - name: Rename files
         run: |
-          mv claude-of-fortune-windows/main.exe claude-of-fortune-windows.exe
-          mv claude-of-fortune-mac/claude-of-fortune-mac.dmg claude-of-fortune-mac.dmg
-          mv claude-of-fortune-linux/main claude-of-fortune-linux.bin
+          mv word-game-windows/main.exe word-game-windows.exe
+          mv word-game-mac/word-game-mac.dmg word-game-mac.dmg
+          mv word-game-linux/main word-game-linux.bin
       - uses: softprops/action-gh-release@v2
         with:
           body_path: RELEASE_NOTES.md
           files: |
-            claude-of-fortune-windows.exe
-            claude-of-fortune-mac.dmg
-            claude-of-fortune-linux.bin
+            word-game-windows.exe
+            word-game-mac.dmg
+            word-game-linux.bin
