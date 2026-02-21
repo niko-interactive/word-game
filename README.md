@@ -1,4 +1,4 @@
-# Wheel of Fortune
+# Claude of Fortune
 
 A Wheel of Fortune-style word guessing game built with Python and Pygame.
 
@@ -15,7 +15,7 @@ A secret phrase is displayed as a row of blank letter slots. Guess letters one a
 ## Project Structure
 
 ```
-wheel_of_fortune/
+claude_of_fortune/
 ├── main.py          # Game loop and entry point
 ├── constants.py     # Screen size and shared dimensions
 ├── letter.py        # Individual letter slot
