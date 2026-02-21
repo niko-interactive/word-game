@@ -2,7 +2,6 @@ name: Build and Release
 
 on:
   push:
-    branches: [main]
     tags:
       - 'v*'
 
@@ -59,11 +58,11 @@ jobs:
       - name: Rename files
         run: |
           mv claude-of-fortune-windows/main.exe claude-of-fortune-windows.exe
-          mv claude-of-fortune-mac/main claude-of-fortune-mac
-          mv claude-of-fortune-linux/main claude-of-fortune-linux
+          mv claude-of-fortune-mac/main claude-of-fortune-mac.bin
+          mv claude-of-fortune-linux/main claude-of-fortune-linux.bin
       - uses: softprops/action-gh-release@v2
         with:
           files: |
             claude-of-fortune-windows.exe
-            claude-of-fortune-mac
-            claude-of-fortune-linux
+            claude-of-fortune-mac.bin
+            claude-of-fortune-linux.bin
