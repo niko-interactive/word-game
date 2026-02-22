@@ -1,6 +1,41 @@
 # Changelog
 
-## v1.4
+## v1.0
+
+### Shop Overhaul
+- Scrollable content area per tab with a scroll indicator — rows no longer overflow the popup
+- Per-tab scroll position preserved independently when switching tabs
+- All item labels white, descriptions grey, regardless of owned/purchased state
+- Disabled consumable buttons render identically to unaffordable ones
+
+### Scalable Upgrade Slots
+- Auto consonant, auto vowel, and extra strike upgrades are now generated from slot counts defined at the top of `shop_items.py`
+- Costs double with each subsequent slot; guaranteed tier always costs double the random tier
+- Adding more upgrade slots requires changing a single number — no other files need to change
+- Default configuration: 3 auto consonant slots, 3 auto vowel slots, 2 extra strike slots
+
+### New Consumables
+- **Bonus Strike** ($75) — extra life shown as a green X to the left of regular strikes; consumed only on wrong guesses
+  - If the player has used strikes, buying a bonus strike recovers the most recent one (flips red back to white) rather than adding a green X
+  - Capped at 3 true bonus strikes; recovery purchases are always allowed
+  - Carries over to the next round
+- **Free Guess** behaviour corrected — now consumed on any guess, right or wrong, not just wrong ones
+
+### Consumable Disable Rules
+- Reveal Consonant disabled when no hidden consonants remain in the phrase
+- Reveal Vowel disabled when no hidden vowels remain in the phrase
+- Eliminate 3 Letters disabled when no wrong letters remain in the alphabet
+- Free Guess purchase disabled when one is already active
+- Bonus Strike purchase disabled when 3 are already held and no used strikes to recover
+
+### UI Changes
+- Free Guess Active and Bonus Strikes count displayed below the Shop button on the main screen, visible without opening the shop
+- Win/lose popup phrase now wraps across multiple lines for long phrases; popup height adjusts dynamically to fit content
+- Scroll wheel in shop no longer accidentally triggers button clicks
+
+---
+
+## v0.5
 
 ### New Features
 - Shop system with two tabs: Upgrades and Consumables
@@ -30,49 +65,30 @@
 - Puzzle pool is rebuilt when the difficulty tier advances mid-run, phasing out easy puzzles and introducing harder ones
 - Puzzle pool is rebuilt from scratch after every loss
 
-### Difficulty Gates
-| Streak | Difficulty Range |
-|---|---|
-| 0–4 | Easy only |
-| 5–8 | Easy to medium |
-| 9–12 | Medium to hard |
-| 13–20 | Medium to hardest |
-| 21–30 | Hard to hardest |
-| 31+ | Hardest puzzles only |
-
 ### No Repeat Puzzles
 - Puzzles are no longer repeated within a single run — each puzzle is tracked and removed from the pool once solved
 - Clearing every available puzzle triggers a special "You Beat the Game!" screen
 - Losing resets the pool so a new run starts fresh
 
 ### Content
-- Total puzzle count increased from 275 to ~1,000 across 10 categories!
+- Total puzzle count increased from 275 to ~1,000 across 10 categories
 - Removed obscure puzzles
 
 ---
 
-## v1.3
+## v0.4
 
 ### New Features
 - Puzzle difficulty system using a formula based on unique letters, letter rarity (Scrabble values), average word length, and number of words
 - Puzzles are now filtered by difficulty based on the player's current streak — harder puzzles unlock as the streak grows
 - "What Are You Doing?" category receives adjusted difficulty scoring since I, N, and G are effectively free letters due to every puzzle ending in ING
 
-### Difficulty Gates
-| Streak | Max Difficulty | Approx Puzzles Available |
-|---|---|---|
-| 0–2 | 200 | ~54 |
-| 3–4 | 350 | ~127 |
-| 5–6 | 500 | ~174 |
-| 7–8 | 700 | ~208 |
-| 9+ | No limit | 274 |
-
 ### Content
 - Removed accented characters from all puzzles — English characters only
 
 ---
 
-## v1.2
+## v0.3
 
 ### New Features
 - Passive upgrades system that unlocks based on win streak
@@ -94,13 +110,13 @@
 - Expanded all categories to 25 puzzles each
 - Renamed Person → Proper Name
 - Renamed Place → Proper Place for famous real-world landmarks
-- Added new Place category for ambiguous everyday locations (e.g. Pond in the Park, Back Corner Booth)
+- Added new Place category for ambiguous everyday locations
 - Added new Occupation category
 - Total puzzle count increased from 115 to 275 across 11 categories
 
 ---
 
-## v1.1
+## v0.2
 
 ### New Features
 - Win and lose popups now display the secret phrase
@@ -120,7 +136,7 @@
 
 ---
 
-## v1.0
+## v0.1
 
 ### New Features
 - Word guessing gameplay with keyboard input
