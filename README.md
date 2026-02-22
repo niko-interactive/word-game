@@ -51,7 +51,7 @@ Consumables are single-use and take effect immediately when purchased.
 
 You earn money at the end of each won round. Harder puzzles pay more, longer streaks pay more, and leaving more strikes unused pays a small bonus:
 
-> `difficulty / 10 × max(streak / 10, 1) × (1 + 0.05 × strikes remaining)`
+> `(difficulty / 10) × max of (streak / 10) or 1 × (1 + 0.05 × strikes_left)`
 
 ---
 
@@ -96,6 +96,8 @@ The game includes 1,000 puzzles across 10 categories:
 1. Go to the [Releases](../../releases) page
 2. Download `word-game-windows.exe`
 3. Double click to run — no installation needed
+
+> The security warning appears because the app is not signed with a certificate. This is normal for independent projects.
 
 ### Mac
 
