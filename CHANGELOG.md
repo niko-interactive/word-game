@@ -5,7 +5,7 @@
 ### New Features
 - Shop system with two tabs: Upgrades and Consumables
 - Upgrades are permanent until the player loses; consumables are single-use and take effect immediately
-- Money is earned on each win based on puzzle difficulty and strikes remaining: `(difficulty / 10) × max of (streak / 10) or 1 × (1 + 0.05 × strikes_left)`
+- Money is earned on each win based on puzzle difficulty and strikes remaining: `difficulty / 10 × max of (streak / 10) or 1 × (1 + 0.05 × strikes remaining)`
 
 ### Upgrades
 | Cost | Upgrade |
@@ -31,14 +31,14 @@
 - Puzzle pool is rebuilt from scratch after every loss
 
 ### Difficulty Gates
-| Streak | Min | Max | ~Puzzles Available |
-|---|---|---|---|
-| 0–2 | — | 200 | ~267 |
-| 3–4 | — | 350 | ~589 |
-| 5–6 | 100 | 500 | ~782 |
-| 7–8 | 200 | 700 | ~666 |
-| 9–10 | 350 | — | ~511 |
-| 11+ | 500 | — | ~318 |
+| Streak | Difficulty Range |
+|---|---|
+| 0–4 | Easy only |
+| 5–8 | Easy to medium |
+| 9–12 | Medium to hard |
+| 13–20 | Medium to hardest |
+| 21–30 | Hard to hardest |
+| 31+ | Hardest puzzles only |
 
 ### No Repeat Puzzles
 - Puzzles are no longer repeated within a single run — each puzzle is tracked and removed from the pool once solved
@@ -46,7 +46,8 @@
 - Losing resets the pool so a new run starts fresh
 
 ### Content
-- Total puzzle count increased from 275 to 1,000 across 10 categories!
+- Total puzzle count increased from 275 to ~1,000 across 10 categories!
+- Removed obscure puzzles
 
 ---
 

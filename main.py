@@ -55,23 +55,16 @@ def get_difficulty_range(streak_count):
     Return (min_difficulty, max_difficulty) for the current streak.
     The window shifts upward as the streak grows — easy puzzles are phased
     out and harder ones phase in, so rounds escalate over time.
-
-      Streak 0-2:  min 0,   max 200  (~54 puzzles)
-      Streak 3-4:  min 0,   max 350  (~127 puzzles)
-      Streak 5-6:  min 100, max 500  (~160 puzzles)
-      Streak 7-8:  min 200, max 700  (~154 puzzles)
-      Streak 9-10: min 350, no max   (~148 puzzles)
-      Streak 11+:  min 500, no max   (~101 puzzles)
     """
-    if streak_count >= 11:
+    if streak_count >= 30:
         return 500, float('inf')
-    elif streak_count >= 9:
+    elif streak_count >= 20:
         return 350, float('inf')
-    elif streak_count >= 7:
+    elif streak_count >= 12:
         return 200, 700
-    elif streak_count >= 5:
+    elif streak_count >= 8:
         return 100, 500
-    elif streak_count >= 3:
+    elif streak_count >= 4:
         return 0, 350
     else:
         return 0, 200

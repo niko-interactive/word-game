@@ -19,7 +19,7 @@ Every win extends your streak. Every loss resets it — and resets your shop upg
 
 ## The Shop
 
-Press the **Shop** button at the top of the screen at any time, even mid-round. Upgrades purchased will become in effect at the start of the next round. Consumables will be used immediately. Your money carries between rounds but resets on a loss.
+Press the **Shop** button at the top of the screen at any time, even mid-round. Upgrades purchased will become active at the start of the next round. Consumables will be used immediately. Your money carries between rounds but resets on a loss.
 
 ### Upgrades
 
@@ -51,7 +51,7 @@ Consumables are single-use and take effect immediately when purchased.
 
 You earn money at the end of each won round. Harder puzzles pay more, longer streaks pay more, and leaving more strikes unused pays a small bonus:
 
-> `difficulty / 10 × max(streak / 10, 1) × (1 + 0.05 × strikes remaining)`
+> `money earned = difficulty / 10 × max of (streak / 10) or 1 × (1 + 0.05 × strikes remaining)`
 
 ---
 
@@ -61,12 +61,12 @@ Puzzles get harder as your streak grows. Early rounds draw from a pool of easier
 
 | Streak | Difficulty Range |
 |---|---|
-| 0–2 | Easy only |
-| 3–4 | Easy to medium |
-| 5–6 | Medium to hard |
-| 7–8 | Medium to hardest |
-| 9–10 | Hard to hardest |
-| 11+ | Hardest puzzles only |
+| 0–4 | Easy only |
+| 5–8 | Easy to medium |
+| 9–12 | Medium to hard |
+| 13–20 | Medium to hardest |
+| 21–30 | Hard to hardest |
+| 31+ | Hardest puzzles only |
 
 No puzzle is ever repeated within a single run. If you somehow clear every available puzzle, you'll see a special screen — but that's a very long way off.
 
@@ -74,7 +74,7 @@ No puzzle is ever repeated within a single run. If you somehow clear every avail
 
 ## Puzzle Categories
 
-The game includes 1,000 puzzles across 10 categories:
+The game includes ~1,000 puzzles across 10 categories:
 
 - **Thing** — everyday objects
 - **Proper Name** — famous people throughout history
@@ -96,6 +96,8 @@ The game includes 1,000 puzzles across 10 categories:
 1. Go to the [Releases](../../releases) page
 2. Download `word-game-windows.exe`
 3. Double click to run — no installation needed
+
+> The security warning appears because the app is not signed with a certificate. This is normal for independent projects.
 
 ### Mac
 
@@ -127,4 +129,4 @@ chmod +x word-game-linux.bin
 | Key | Action |
 |---|---|
 | A–Z | Guess a letter |
-| Enter | Close popup or shop |
+| Enter | Close popup |
