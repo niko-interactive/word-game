@@ -94,8 +94,9 @@ class Shop:
     # --- State ---
 
     def reset(self):
-        """Reset consumable state on a loss. Upgrades and round state reset by GameManager."""
-        pass
+        """Reset tab and scroll state on a loss. Upgrades and round state reset by GameManager."""
+        self.active_tab = 'upgrades'
+        self.scroll_offsets = {k: 0 for k in self.scroll_offsets}
 
     def _secret_visible(self):
         """
@@ -136,16 +137,18 @@ class Shop:
             for i, tab_id in enumerate(visible_tabs)
         }
 
-    def _visible_upgrades(self, purchased_upgrades):
+    def _visible_upgrades(self):
         """Return upgrades that should be visible — prereq must be purchased first."""
+        purchased = self.manager.purchased_upgrades if self.manager else set()
         return [u for u in UPGRADES
-                if u['requires'] is None or u['requires'] in purchased_upgrades]
+                if u['requires'] is None or u['requires'] in purchased]
 
-    def is_upgrade_available(self, upgrade, purchased_upgrades):
+    def is_upgrade_available(self, upgrade):
         """Return True if the upgrade can be purchased — not already owned and prereq met."""
-        if upgrade['id'] in purchased_upgrades:
+        purchased = self.manager.purchased_upgrades if self.manager else set()
+        if upgrade['id'] in purchased:
             return False
-        if upgrade['requires'] and upgrade['requires'] not in purchased_upgrades:
+        if upgrade['requires'] and upgrade['requires'] not in purchased:
             return False
         return True
 
@@ -198,7 +201,7 @@ class Shop:
         """Attempt to purchase an upgrade. Returns True if successful."""
         purchased = self.manager.purchased_upgrades
         upgrade = next((u for u in UPGRADES if u['id'] == upgrade_id), None)
-        if not upgrade or not self.is_upgrade_available(upgrade, purchased):
+        if not upgrade or not self.is_upgrade_available(upgrade):
             return False
         if not self.manager.spend(upgrade['cost']):
             return False
@@ -256,10 +259,10 @@ class Shop:
 
     # --- Scroll ---
 
-    def _max_scroll(self, tab, purchased_upgrades):
+    def _max_scroll(self, tab):
         """Return the maximum scroll offset for a tab based on its total content height."""
         if tab == 'upgrades':
-            count = len(self._visible_upgrades(purchased_upgrades))
+            count = len(self._visible_upgrades())
         elif tab == 'consumables':
             count = len(CONSUMABLES)
         else:
@@ -267,14 +270,14 @@ class Shop:
         total_content_height = count * ROW_HEIGHT
         return max(0, total_content_height - self.content_height)
 
-    def scroll(self, dy, purchased_upgrades):
+    def scroll(self, dy):
         """
         Scroll the active tab by dy pixels (negative = scroll down, positive = scroll up).
         Clamps to valid range so content never scrolls past its bounds.
         """
         if not self.visible:
             return
-        max_scroll = self._max_scroll(self.active_tab, purchased_upgrades)
+        max_scroll = self._max_scroll(self.active_tab)
         current = self.scroll_offsets[self.active_tab]
         self.scroll_offsets[self.active_tab] = max(0, min(current - dy * 20, max_scroll))
 
@@ -284,7 +287,7 @@ class Shop:
 
     # --- Click Handling ---
 
-    def handle_click(self, pos, purchased_upgrades):
+    def handle_click(self, pos):
         """Handle all clicks for the shop button, tabs, buy buttons, and close."""
         if self.button_rect.collidepoint(pos):
             self.visible = not self.visible
@@ -315,7 +318,7 @@ class Shop:
         content_y = pos[1] - self.content_top + scroll
 
         if self.active_tab == 'upgrades':
-            visible = self._visible_upgrades(purchased_upgrades)
+            visible = self._visible_upgrades()
             for i, upgrade in enumerate(visible):
                 row_y    = i * ROW_HEIGHT
                 btn_rect = pygame.Rect(0, 0, BTN_WIDTH, BTN_HEIGHT)
@@ -352,7 +355,7 @@ class Shop:
 
     # --- Drawing ---
 
-    def _draw_tab_content(self, screen, money, purchased_upgrades):
+    def _draw_tab_content(self, screen):
         """
         Draw the scrollable content for the active tab.
         Renders all rows onto an offscreen surface, then blits a clipped
@@ -367,7 +370,7 @@ class Shop:
             return
 
         if self.active_tab == 'upgrades':
-            items = self._visible_upgrades(purchased_upgrades)
+            items = self._visible_upgrades()
         else:
             items = CONSUMABLES
 
@@ -379,9 +382,9 @@ class Shop:
             y          = i * ROW_HEIGHT
             is_upgrade = self.active_tab == 'upgrades'
 
-            owned     = is_upgrade and item['id'] in purchased_upgrades
+            owned     = is_upgrade and item['id'] in self.manager.purchased_upgrades
             disabled  = not is_upgrade and self._is_consumable_disabled(item['id'])
-            can_afford = money >= item['cost']
+            can_afford = self.manager.money >= item['cost']
 
             # Labels always white, descriptions always grey regardless of state
             label_surf = self.small_font.render(item['label'],       True, 'white')
@@ -487,8 +490,8 @@ class Shop:
         visible_area = pygame.Rect(0, scroll, self.popup_rect.width, self.content_height)
         screen.blit(content_surface, (self.popup_rect.left, self.content_top), visible_area)
 
-    def draw(self, screen, money, purchased_upgrades):
-        """Draw the shop button, active consumable status, and popup if visible."""
+    def draw(self, screen):
+        """Draw the shop button, active consumable status, and popup if visible. Reads all state from self.manager."""
         pygame.draw.rect(screen, 'black', self.button_rect)
         pygame.draw.rect(screen, 'white', self.button_rect, 2)
         btn_surface = self.font.render('Shop', True, 'white')
@@ -549,15 +552,15 @@ class Shop:
 
         # Scrollable content — clipped so rows can't bleed outside the popup
         screen.set_clip(self.content_rect)
-        self._draw_tab_content(screen, money, purchased_upgrades)
+        self._draw_tab_content(screen)
         screen.set_clip(None)
 
         # Scroll indicator — only relevant for tabs with scrollable content
-        max_scroll = self._max_scroll(self.active_tab, purchased_upgrades)
+        max_scroll = self._max_scroll(self.active_tab)
         if max_scroll > 0:
             scroll = self.scroll_offsets[self.active_tab]
             if self.active_tab == 'upgrades':
-                item_count = len(self._visible_upgrades(purchased_upgrades))
+                item_count = len(self._visible_upgrades())
             elif self.active_tab == 'secret':
                 item_count = len(SECRET_ITEMS)
             else:

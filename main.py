@@ -23,6 +23,7 @@ score = Score(font)
 # Manager owns all run/round state — shop.manager wired so purchases can call spend()
 manager = GameManager(font, shop)
 shop.manager = manager
+score.manager = manager
 
 popup = None       # Active popup overlay, or None
 pending_lose = False  # True when a lose popup is showing but lose() hasn't fired yet
@@ -58,10 +59,10 @@ while running:
             if popup and popup.handle_click(event.pos):
                 dismiss_popup()
             elif not popup:
-                shop.handle_click(event.pos, manager.purchased_upgrades)
+                shop.handle_click(event.pos)
 
         if event.type == pygame.MOUSEWHEEL:
-            shop.scroll(event.y, manager.purchased_upgrades)
+            shop.scroll(event.y)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
@@ -93,8 +94,8 @@ while running:
     # --- Drawing ---
     screen.fill('black')
     manager.draw(screen)
-    score.draw(screen, manager.streak_count, manager.money, manager.stars, manager.stars_display_unlocked)
-    shop.draw(screen, manager.money, manager.purchased_upgrades)
+    score.draw(screen)
+    shop.draw(screen)
 
     if popup:
         popup.draw(screen)
