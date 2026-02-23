@@ -8,15 +8,13 @@ ROW_HEIGHT = 52
 BTN_WIDTH = 80
 BTN_HEIGHT = 36
 
-SECRET_UNLOCK_COST = 5  # Stars required to unlock the secret tab
-
 
 class Shop:
     """
-    Manages the shop UI and purchase rules for upgrades, consumables, and secret items.
+    Manages the shop UI and purchase rules for upgrades, consumables, and prestige items.
     Upgrades are permanent until the player loses.
     Consumables are purchased and used immediately.
-    Secret items cost stars (*) and are permanently unlocked across losses.
+    Prestige items cost stars (*) and are permanently unlocked across losses.
 
     The secret tab is invisible until the player has at least 1 star, then visible
     but locked. Clicking it while locked spends 5 stars to unlock it permanently.
@@ -58,11 +56,6 @@ class Shop:
         # Set by main.py after GameManager is created
         self.manager = None
 
-        # Shop button centered at the top of the screen
-        self.button_rect = pygame.Rect(0, 0, 160, 48)
-        self.button_rect.centerx = screen_width // 2
-        self.button_rect.top = 20
-
         # Popup centered on screen
         self.popup_rect = pygame.Rect(0, 0, 600, 480)
         self.popup_rect.center = (screen_width // 2, screen_height // 2)
@@ -100,18 +93,14 @@ class Shop:
 
     def _secret_visible(self):
         """
-        Secret tab appears once the player has at least 1 star, and stays visible
-        permanently after that — including after unlocking (which spends stars to 0)
-        and after losing runs. Tied to stars_display_unlocked so it never disappears.
+        Prestige tab appears after the player has prestiged at least once.
+        Once visible it never disappears.
         """
-        return self.manager and (
-            self.manager.secret_shop_unlocked
-            or self.manager.stars_display_unlocked
-        )
+        return self.manager and self.manager.prestige_count >= 1
 
     def _secret_unlocked(self):
-        """Secret tab is unlocked (enterable) once the player has spent 5 stars on it."""
-        return self.manager and self.manager.secret_shop_unlocked
+        """Prestige tab is always enterable once visible (after first prestige)."""
+        return self._secret_visible()
 
 
     def _build_tab_rects(self):
@@ -231,17 +220,6 @@ class Shop:
 
         return True
 
-    def _try_unlock_secret(self):
-        """Spend 5 stars to permanently unlock the secret tab. Returns True if successful."""
-        if not self.manager:
-            return False
-        if self.manager.secret_shop_unlocked:
-            return False
-        if not self.manager.spend_stars(SECRET_UNLOCK_COST):
-            return False
-        self.manager.secret_shop_unlocked = True
-        self.active_tab = 'secret'  # Switch into the tab immediately on unlock
-        return True
 
     def _try_purchase_secret_item(self, item_id):
         """Attempt to purchase a secret item, spending stars or money as appropriate."""
@@ -266,7 +244,7 @@ class Shop:
         elif tab == 'consumables':
             count = len(CONSUMABLES)
         else:
-            count = len(SECRET_ITEMS) if self._secret_unlocked() else 0
+            count = len(SECRET_ITEMS)
         total_content_height = count * ROW_HEIGHT
         return max(0, total_content_height - self.content_height)
 
@@ -288,11 +266,7 @@ class Shop:
     # --- Click Handling ---
 
     def handle_click(self, pos):
-        """Handle all clicks for the shop button, tabs, buy buttons, and close."""
-        if self.button_rect.collidepoint(pos):
-            self.visible = not self.visible
-            return True
-
+        """Handle all clicks within the shop popup (tabs, buy buttons, close). Button toggled by MenuBar."""
         if not self.visible:
             return False
 
@@ -303,10 +277,6 @@ class Shop:
         for tab_id, rect in self._build_tab_rects().items():
             if not rect.collidepoint(pos):
                 continue
-            # Clicking the secret tab while locked attempts to unlock it
-            if tab_id == 'secret' and not self._secret_unlocked():
-                self._try_unlock_secret()
-                return True
             self._switch_tab(tab_id)
             return True
 
@@ -418,32 +388,9 @@ class Shop:
         screen.blit(content_surface, (self.popup_rect.left, self.content_top), visible_area)
 
     def _draw_secret_content(self, screen):
-        """
-        Draw the secret tab content area.
-        Locked: centred prompt showing the star cost to unlock.
-        Unlocked: scrollable item rows with star-cost buttons (gold).
-        """
+        """Draw prestige tab item rows with star-cost buttons (gold)."""
         stars = self.manager.stars if self.manager else 0
-
-        if not self._secret_unlocked():
-            # Locked state — show unlock prompt centred in the content area
-            cx = self.popup_rect.centerx
-            cy = self.content_top + self.content_height // 2 - 20
-
-            can_afford   = stars >= SECRET_UNLOCK_COST
-            prompt_color = 'white' if can_afford else '#555555'
-            cost_color   = 'gold'  if can_afford else '#666600'
-
-            prompt = self.small_font.render('Unlock the Secret Shop for', True, prompt_color)
-            cost   = self.font.render(f'*{SECRET_UNLOCK_COST}', True, cost_color)
-            note   = self.small_font.render(f'You have *{stars}', True, '#888888')
-
-            screen.blit(prompt, prompt.get_rect(centerx=cx, bottom=cy))
-            screen.blit(cost,   cost.get_rect(centerx=cx, top=cy))
-            screen.blit(note,   note.get_rect(centerx=cx, top=cy + cost.get_height() + 6))
-            return
-
-        # Unlocked — draw item rows
+        # Draw item rows
         total_height    = max(len(SECRET_ITEMS) * ROW_HEIGHT, self.content_height)
         content_surface = pygame.Surface((self.popup_rect.width, total_height))
         content_surface.fill('black')
@@ -491,23 +438,7 @@ class Shop:
         screen.blit(content_surface, (self.popup_rect.left, self.content_top), visible_area)
 
     def draw(self, screen):
-        """Draw the shop button, active consumable status, and popup if visible. Reads all state from self.manager."""
-        pygame.draw.rect(screen, 'black', self.button_rect)
-        pygame.draw.rect(screen, 'white', self.button_rect, 2)
-        btn_surface = self.font.render('Shop', True, 'white')
-        screen.blit(btn_surface, btn_surface.get_rect(center=self.button_rect.center))
-
-        # Active consumable status shown below the shop button on the main screen
-        if self.manager:
-            status_y = self.button_rect.bottom + 6
-            if self.manager.free_guess_active:
-                fg_surf = self.small_font.render('FREE GUESS ACTIVE', True, 'green')
-                screen.blit(fg_surf, fg_surf.get_rect(centerx=self.button_rect.centerx, top=status_y))
-                status_y += fg_surf.get_height() + 2
-            if self.manager.bonus_strikes > 0:
-                bs_surf = self.small_font.render(f'BONUS STRIKES: {self.manager.bonus_strikes}', True, 'green')
-                screen.blit(bs_surf, bs_surf.get_rect(centerx=self.button_rect.centerx, top=status_y))
-
+        """Draw the shop popup if visible. Button is drawn by MenuBar."""
         if not self.visible:
             return
 
@@ -521,28 +452,15 @@ class Shop:
 
         for tab_id, rect in self._build_tab_rects().items():
 
-            is_active = self.active_tab == tab_id
-            is_locked = tab_id == 'secret' and not self._secret_unlocked()
-
-            # Locked secret tab styling — brightens to full gold when player can afford unlock
-            can_afford_unlock = is_locked and self.manager and self.manager.stars >= SECRET_UNLOCK_COST
-            if is_locked:
-                border_color = 'gold'    if can_afford_unlock else '#666600'
-                fill_color   = '#221100' if (can_afford_unlock and is_active) else ('#111100' if is_active else 'black')
-            else:
-                border_color = 'white'
-                fill_color   = '#222222' if is_active else 'black'
+            is_active    = self.active_tab == tab_id
+            border_color = 'white'
+            fill_color   = '#222222' if is_active else 'black'
 
             pygame.draw.rect(screen, fill_color,    rect)
             pygame.draw.rect(screen, border_color,  rect, 2 if is_active else 1)
 
-            if is_locked:
-                label      = '! Secret !' if can_afford_unlock else '? Secret ?'
-                text_color = 'gold'        if can_afford_unlock else '#888800'
-            else:
-                label      = tab_id.capitalize()
-                text_color = 'white'
-            tab_surf = self.small_font.render(label, True, text_color)
+            label    = 'Prestige' if tab_id == 'secret' else tab_id.capitalize()
+            tab_surf = self.small_font.render(label, True, 'white')
             screen.blit(tab_surf, tab_surf.get_rect(center=rect.center))
 
         # Divider below tabs

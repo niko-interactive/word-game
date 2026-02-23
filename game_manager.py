@@ -9,6 +9,9 @@ from topic import Topic
 from shop_items import VOWELS, CONSONANTS, AUTO_CONSONANT_SLOTS, AUTO_VOWEL_SLOTS, EXTRA_STRIKE_SLOTS
 
 
+# Streak round required before the player can prestige — adjust for balancing
+PRESTIGE_UNLOCK_STREAK = 50
+
 # Scrabble values used to weight letter rarity in difficulty calculation
 SCRABBLE = {
     'A': 1, 'E': 1, 'I': 1, 'O': 1, 'U': 1,
@@ -49,8 +52,11 @@ class GameManager:
 
         # Meta state — never resets on loss
         self.total_rounds_completed = 0
-        self.stars = 0                      # Earned 1 per 10 rounds completed in a single streak
-        self.secret_shop_unlocked = False   # Costs 5 stars; permanent once bought
+        self.stars = 0                       # Spendable stars, earned via prestige
+        self.prestige_count = 0              # Total number of times player has prestiged; never resets
+        self.star_buffer = 0                        # Pending stars earned this run, lost on loss
+        self.pending_milestones = set()             # Milestones earned this run but not yet prestiged; wiped on loss
+        self.permanent_milestones = set()           # Milestones locked in via prestige; never resets
         self._stars_display_unlocked = False  # Backing field — use stars_display_unlocked property
 
         # Round state — rebuilt each round
@@ -101,11 +107,37 @@ class GameManager:
         works correctly whether stars are earned naturally, set manually for testing,
         or restored from a save file — no separate flag to keep in sync.
         """
-        return self._stars_display_unlocked or self.stars > 0 or self.secret_shop_unlocked
+        return self._stars_display_unlocked or bool(self.permanent_milestones) or bool(self.pending_milestones) or self.stars > 0
 
     @stars_display_unlocked.setter
     def stars_display_unlocked(self, value):
         self._stars_display_unlocked = value
+
+    @property
+    def can_prestige(self):
+        """True when the player is eligible to prestige — streak is at the unlock threshold
+        and there is at least one star waiting in the buffer."""
+        return self.streak_count >= PRESTIGE_UNLOCK_STREAK and self.star_buffer > 0
+
+    def prestige(self):
+        """
+        Convert buffered stars to spendable stars and reset the run, preserving all
+        meta state. Behaves like lose() except star_buffer is cashed out rather than wiped.
+        """
+        self.stars += self.star_buffer
+        self.star_buffer = 0
+        self.permanent_milestones |= self.pending_milestones  # Lock these in permanently
+        self.pending_milestones = set()
+        self.prestige_count += 1
+        self.previous_streak = self.streak_count
+        self.streak_count = 0
+        self.money = 0
+        self.purchased_upgrades = set()
+        self.seen_puzzles.clear()
+        self.shop.reset()
+        self.current_tier = self._get_difficulty_tier()
+        self._build_pool()
+        self._start_round()
 
     # --- Streak ---
 
@@ -119,9 +151,13 @@ class GameManager:
         self.streak_count += 1
         self.total_rounds_completed += 1
 
-        # Award a star for every 10th round completed across all runs
-        if self.streak_count % 10 == 0:
-            self.stars += 1
+        # Award a buffer star the first time this streak milestone is reached in this run.
+        # Only blocked by permanent_milestones (locked in via prestige) — losing clears
+        # pending_milestones so those stars can be re-earned on the next run.
+        milestone = (self.streak_count // 10) * 10
+        if milestone > 0 and milestone not in self.permanent_milestones and milestone not in self.pending_milestones:
+            self.pending_milestones.add(milestone)
+            self.star_buffer += 1
             self.stars_display_unlocked = True
 
         difficulty = self._calculate_difficulty(self.phrase.word, self.topic.topic)
@@ -140,7 +176,9 @@ class GameManager:
         self.current_tier = self._get_difficulty_tier()
         self._build_pool()
         self._start_round()
-        # total_rounds_completed and stars intentionally not reset here
+        # stars, permanent_milestones, prestige_count intentionally not reset here
+        self.star_buffer = 0        # Pending stars are lost on loss — prestige to keep them
+        self.pending_milestones = set()  # Milestones not yet prestiged are re-earnable next run
 
     def max_strikes(self):
         """Return total strikes allowed based on purchased strike upgrades."""
@@ -220,6 +258,7 @@ class GameManager:
             self.alphabet.guess(letter)
 
         self.free_guess_active = False
+        self.solved_by_consumable = False  # Set True if a consumable reveal solves the puzzle
         # bonus_strikes intentionally not reset here — carries over between rounds
 
         # Register consumable callbacks now that phrase and alphabet exist
@@ -244,6 +283,8 @@ class GameManager:
             letter = random.choice(hidden)
             self.phrase.guess(letter)
             self.alphabet.guess(letter)
+            if self.phrase.is_solved():
+                self.solved_by_consumable = True
 
     def _reveal_vowel(self):
         """Reveal a random hidden vowel from the current phrase."""
@@ -256,6 +297,8 @@ class GameManager:
             letter = random.choice(hidden)
             self.phrase.guess(letter)
             self.alphabet.guess(letter)
+            if self.phrase.is_solved():
+                self.solved_by_consumable = True
 
     def _eliminate_letters(self):
         """Mark 3 letters not in the phrase as guessed to remove them from the alphabet."""
