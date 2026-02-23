@@ -57,7 +57,7 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if popup and popup.handle_click(event.pos):
                 dismiss_popup()
-            else:
+            elif not popup:
                 shop.handle_click(event.pos, manager.purchased_upgrades)
 
         if event.type == pygame.MOUSEWHEEL:
@@ -79,11 +79,13 @@ while running:
                     result = manager.guess(letter)
 
                     if result == 'solved':
+                        shop.visible = False
                         popup = Popup('You Win!', font, *SCREEN_SIZE,
                                       phrase=manager.phrase.word)
 
                     elif result == 'game_over':
                         pending_lose = True
+                        shop.visible = False
                         popup = Popup('You Lose!', font, *SCREEN_SIZE,
                                       phrase=manager.phrase.word,
                                       streak=manager.streak_count)
