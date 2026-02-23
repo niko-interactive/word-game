@@ -47,6 +47,12 @@ class GameManager:
         self.money = 0
         self.purchased_upgrades = set()  # ids of permanently owned upgrades
 
+        # Meta state — never resets on loss
+        self.total_rounds_completed = 0
+        self.stars = 7                      # Earned 1 per 10 rounds completed in a single streak
+        self.secret_shop_unlocked = False   # Costs 5 stars; permanent once bought
+        self._stars_display_unlocked = False  # Backing field — use stars_display_unlocked property
+
         # Round state — rebuilt each round
         self.phrase = None
         self.alphabet = None
@@ -81,6 +87,26 @@ class GameManager:
         self.money -= amount
         return True
 
+    def spend_stars(self, amount):
+        """Deduct stars. Returns True if successful, False if insufficient stars."""
+        if self.stars < amount:
+            return False
+        self.stars -= amount
+        return True
+
+    @property
+    def stars_display_unlocked(self):
+        """
+        True if the star display should be shown. Derived from live state so it
+        works correctly whether stars are earned naturally, set manually for testing,
+        or restored from a save file — no separate flag to keep in sync.
+        """
+        return self._stars_display_unlocked or self.stars > 0 or self.secret_shop_unlocked
+
+    @stars_display_unlocked.setter
+    def stars_display_unlocked(self, value):
+        self._stars_display_unlocked = value
+
     # --- Streak ---
 
     def win(self):
@@ -91,13 +117,20 @@ class GameManager:
         """
         self.seen_puzzles.add(self.phrase.word)
         self.streak_count += 1
+        self.total_rounds_completed += 1
+
+        # Award a star for every 10th round completed across all runs
+        if self.streak_count % 10 == 0:
+            self.stars += 1
+            self.stars_display_unlocked = True
+
         difficulty = self._calculate_difficulty(self.phrase.word, self.topic.topic)
         strikes_left = self.strikes.max_strikes - self.strikes.count  # bonus strikes excluded intentionally
         self.earn(difficulty, strikes_left)
         return self._advance_round()
 
     def lose(self):
-        """Handle a round loss — reset all run state and start fresh."""
+        """Handle a round loss — reset all run state and start fresh. Meta state is preserved."""
         self.previous_streak = self.streak_count
         self.streak_count = 0
         self.money = 0
@@ -107,6 +140,7 @@ class GameManager:
         self.current_tier = self._get_difficulty_tier()
         self._build_pool()
         self._start_round()
+        # total_rounds_completed and stars intentionally not reset here
 
     def max_strikes(self):
         """Return total strikes allowed based on purchased strike upgrades."""

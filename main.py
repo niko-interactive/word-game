@@ -4,7 +4,7 @@ from constants import SCREEN_SIZE
 from game_manager import GameManager
 from popup import Popup
 from shop import Shop
-from streak import Streak
+from score import Score
 
 
 # --- Initialization ---
@@ -16,9 +16,9 @@ running = True
 
 font = pygame.font.SysFont('Arial', 32)
 
-# Shop and streak are UI classes that persist across rounds
+# Shop and score are UI classes that persist across rounds
 shop = Shop(font, *SCREEN_SIZE)
-streak = Streak(font)
+score = Score(font)
 
 # Manager owns all run/round state — shop.manager wired so purchases can call spend()
 manager = GameManager(font, shop)
@@ -91,7 +91,7 @@ while running:
     # --- Drawing ---
     screen.fill('black')
     manager.draw(screen)
-    streak.draw(screen, manager.streak_count, manager.money)
+    score.draw(screen, manager.streak_count, manager.money, manager.stars, manager.stars_display_unlocked)
     shop.draw(screen, manager.money, manager.purchased_upgrades)
 
     if popup:
