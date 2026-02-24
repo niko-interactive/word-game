@@ -101,6 +101,8 @@ class Shop:
             # purchased_upgrades stores each *purchase* as 'id_1', 'id_2', etc.
             return sum(1 for k in self.manager.purchased_upgrades
                        if k == item_id or k.startswith(item_id + '_'))
+        if item_list is CONSUMABLES:
+            return self.manager.consumable_purchases.get(item_id, 0)
         if item_list is PRESTIGE_ITEMS:
             if item_id == 'star_streak_discount':
                 return self.manager.star_streak_discounts
@@ -252,8 +254,10 @@ class Shop:
         consumable = next((c for c in CONSUMABLES if c['id'] == consumable_id), None)
         if not consumable or self._is_consumable_disabled(consumable_id):
             return False
-        if not self.manager.spend(consumable['cost']):
+        cost = self._next_cost(consumable, CONSUMABLES)
+        if not self.manager.spend(cost):
             return False
+        self.manager.consumable_purchases[consumable_id] =             self.manager.consumable_purchases.get(consumable_id, 0) + 1
         callbacks = {
             'reveal_consonant':  self.on_reveal_consonant,
             'reveal_vowel':      self.on_reveal_vowel,
@@ -367,10 +371,10 @@ class Shop:
             # --- State ---
             if is_consumable:
                 available    = not self._is_consumable_disabled(item['id'])
-                can_afford   = self.manager.money >= item['cost']
+                cost_now     = self._next_cost(item, CONSUMABLES)
+                can_afford   = self.manager.money >= cost_now
                 fully_owned  = False
                 blocked      = False
-                cost_now     = item['cost']
                 display_lbl  = item['label']
                 cost_prefix  = '$'
                 afford_color = 'white'

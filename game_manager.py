@@ -1,12 +1,12 @@
 import random
 
-from constants import SCREEN_SIZE
+from constants import CONSONANTS, SCREEN_SIZE, VOWELS
 from puzzles import PUZZLES
 from phrase import Phrase
 from alphabet import Alphabet
 from strikes import Strikes
 from topic import Topic
-from shop_items import VOWELS, CONSONANTS, UPGRADES
+from shop_items import UPGRADES
 
 
 # Streak round required before the player can prestige — adjust for balancing
@@ -48,7 +48,8 @@ class GameManager:
         self.streak_count = 0
         self.previous_streak = 0   # Streak before last loss, used in lose popup
         self.money = 0
-        self.purchased_upgrades = set()  # ids of permanently owned upgrades
+        self.purchased_upgrades = set()    # ids of permanently owned upgrades
+        self.consumable_purchases = {}     # {consumable_id: count} — resets on loss/prestige
 
         # Meta state — never resets on loss
         self.total_rounds_completed = 0
@@ -149,6 +150,7 @@ class GameManager:
         self.streak_count = 0
         self.money = 0
         self.purchased_upgrades = set()
+        self.consumable_purchases = {}
         self.seen_puzzles.clear()
         self.shop.reset()
         self.current_tier = self._get_difficulty_tier()
@@ -179,6 +181,7 @@ class GameManager:
         self.streak_count = 0
         self.money = 0
         self.purchased_upgrades = set()
+        self.consumable_purchases = {}
         self.seen_puzzles.clear()
         self.shop.reset()
         self.current_tier = self._get_difficulty_tier()

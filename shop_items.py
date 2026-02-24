@@ -1,6 +1,3 @@
-VOWELS = set('AEIOU')
-CONSONANTS = set('BCDFGHJKLMNPQRSTVWXYZ')
-
 # ---------------------------------------------------------------------------
 # Unified item schema — used by UPGRADES, CONSUMABLES, and PRESTIGE_ITEMS
 # ---------------------------------------------------------------------------
@@ -81,7 +78,7 @@ CONSUMABLES = [
         'label':       'Reveal Consonant',
         'description': 'Reveals a random hidden consonant in the phrase',
         'cost':        25,
-        'cost_growth': None,
+        'cost_growth': 1.2,
         'currency':    'money',
         'max_owned':   None,
         'requires':    None,
@@ -91,7 +88,7 @@ CONSUMABLES = [
         'label':       'Reveal Vowel',
         'description': 'Reveals a random hidden vowel in the phrase',
         'cost':        50,
-        'cost_growth': None,
+        'cost_growth': 1.2,
         'currency':    'money',
         'max_owned':   None,
         'requires':    None,
@@ -192,7 +189,7 @@ PRESTIGE_ITEMS = [
     {
         'id':          'star_streak_discount',
         'label':       'Star Discount',
-        'description': 'Each star after the 5th costs 1 fewer extra streak to earn',
+        'description': 'Each star is earned faster.',
         'cost':        3,
         'cost_growth': None,
         'currency':    'stars',
