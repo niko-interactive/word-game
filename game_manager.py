@@ -453,5 +453,5 @@ class GameManager:
         """Draw all round objects."""
         self.phrase.draw(screen)
         self.alphabet.draw(screen)
-        self.strikes.draw(screen, self.bonus_strikes)
+        self.strikes.draw(screen, self.bonus_strikes, self.free_guess_active)
         self.topic.draw(screen)

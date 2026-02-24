@@ -20,7 +20,6 @@ class MenuBar:
 
     def __init__(self, font, screen_width, shop):
         self.font         = font
-        self.small_font   = pygame.font.SysFont('Arial', 20)
         self.screen_width = screen_width
         self.shop         = shop
         self.manager      = None 
@@ -96,15 +95,3 @@ class MenuBar:
             pygame.draw.rect(screen, border, rect, 2)
             surf = self.font.render(label, True, color)
             screen.blit(surf, surf.get_rect(center=rect.center))
-
-        # Active consumable status shown below the shop button
-        if self.manager and 'shop' in self._rects:
-            shop_rect = self._rects['shop']
-            status_y  = shop_rect.bottom + 6
-            if self.manager.free_guess_active:
-                fg_surf = self.small_font.render('FREE GUESS ACTIVE', True, 'green')
-                screen.blit(fg_surf, fg_surf.get_rect(centerx=shop_rect.centerx, top=status_y))
-                status_y += fg_surf.get_height() + 2
-            if self.manager.bonus_strikes > 0:
-                bs_surf = self.small_font.render(f'BONUS STRIKES: {self.manager.bonus_strikes}', True, 'green')
-                screen.blit(bs_surf, bs_surf.get_rect(centerx=shop_rect.centerx, top=status_y))
